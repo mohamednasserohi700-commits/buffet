@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}الأصناف والأسعار{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">الأصناف والأسعار</div>
+    <div class="page-desc">اسم كل صنف وسعر الوحدة بتاعه — السعر ده بيتحسب أوتوماتيك في تسجيل الصرف</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">إضافة صنف جديد</div>
+  <form method="post" action="{{ url_for('items') }}" class="form-grid">
+    <div class="field">
+      <label>اسم الصنف</label>
+      <input type="text" name="name" placeholder="مثال: شاي" required>
+    </div>
+    <div class="field">
+      <label>سعر الوحدة (ج.م)</label>
+      <input type="number" name="price" step="0.01" min="0" placeholder="0.00" required>
+    </div>
+    <div class="field">
+      <button type="submit" class="btn btn-primary">إضافة الصنف</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title">قائمة الأصناف ({{ items|length }})</div>
+  {% if items %}
+  <table>
+    <thead>
+      <tr>
+        <th>اسم الصنف</th>
+        <th class="num">سعر الوحدة</th>
+        <th>عدد عمليات الصرف</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>
+          <input form="edit-{{ item.id }}" type="text" name="name" value="{{ item.name }}"
+                 style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:inherit; width:160px;">
+        </td>
+        <td class="num">
+          <input form="edit-{{ item.id }}" type="number" name="price" step="0.01" min="0" value="{{ item.price }}"
+                 style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:inherit; width:100px; text-align:left;">
+        </td>
+        <td><span class="badge">{{ item.entries|length }} عملية</span></td>
+        <td class="actions-cell">
+          <form id="edit-{{ item.id }}" method="post" action="{{ url_for('update_item', item_id=item.id) }}" class="inline-form"></form>
+          <button form="edit-{{ item.id }}" type="submit" class="btn btn-ghost btn-sm">حفظ</button>
+          <form method="post" action="{{ url_for('delete_item', item_id=item.id) }}" class="inline-form" onsubmit="return confirm('حذف الصنف {{ item.name }}؟');">
+            <button type="submit" class="btn btn-danger">حذف</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">لسه مفيش أصناف. ضيف أول صنف من الفورم اللي فوق.</div>
+  {% endif %}
+</div>
+{% endblock %}

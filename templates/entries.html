@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}تسجيل الصرف — {{ month_name }} {{ year }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">تسجيل الصرف</div>
+    <div class="page-desc">اختار الصنف والكمية والتاريخ — السعر واليوم بيتحسبوا لوحدهم</div>
+  </div>
+  <div class="month-nav no-print">
+    <a href="{{ url_for('entries_month', year=prev_year, month=prev_month) }}">‹</a>
+    <span class="month-label">{{ month_name }} {{ year }}</span>
+    <a href="{{ url_for('entries_month', year=next_year, month=next_month) }}">›</a>
+  </div>
+</div>
+
+<div class="card no-print">
+  <div class="card-title">إضافة عملية صرف</div>
+  {% if items|length == 0 %}
+    <div class="empty-state">لازم تضيف أصناف الأول من صفحة <a href="{{ url_for('items') }}" style="color:var(--amber); font-weight:700;">الأصناف والأسعار</a>.</div>
+  {% else %}
+  <form method="post" action="{{ url_for('entries_month', year=year, month=month) }}" class="form-grid">
+    <div class="field">
+      <label>الصنف</label>
+      <select name="item_id" required>
+        <option value="" disabled selected>اختار الصنف</option>
+        {% for item in items %}
+        <option value="{{ item.id }}">{{ item.name }} — {{ item.price|money }} ج.م</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>الكمية</label>
+      <input type="number" name="quantity" step="0.01" min="0.01" placeholder="0" required>
+    </div>
+    <div class="field">
+      <label>التاريخ</label>
+      <input type="date" name="entry_date" value="{{ today }}" required>
+    </div>
+    <div class="field">
+      <label>ملاحظات (اختياري)</label>
+      <input type="text" name="note" placeholder="ملاحظة">
+    </div>
+    <div class="field">
+      <button type="submit" class="btn btn-primary">تسجيل</button>
+    </div>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="toolbar">
+    <div class="card-title" style="margin:0;">عمليات {{ month_name }} {{ year }} ({{ rows|length }})</div>
+    <div class="card-title" style="margin:0; color: var(--amber-dark);">الإجمالي: {{ grand_total|money }} ج.م</div>
+  </div>
+  {% if rows %}
+  <table>
+    <thead>
+      <tr>
+        <th>م</th>
+        <th>الصنف</th>
+        <th class="num">الكمية</th>
+        <th>التاريخ</th>
+        <th>اليوم</th>
+        <th class="num">السعر</th>
+        <th>ملاحظات</th>
+        <th class="no-print"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ row.item.name }}</td>
+        <td class="num">{{ row.quantity|money }}</td>
+        <td>{{ row.entry_date.strftime('%d/%m/%Y') }}</td>
+        <td>{{ day_name_fn(row.entry_date) }}</td>
+        <td class="num">{{ row.total|money }} ج.م</td>
+        <td>{{ row.note or '—' }}</td>
+        <td class="no-print">
+          <form method="post" action="{{ url_for('delete_entry', entry_id=row.id) }}" class="inline-form" onsubmit="return confirm('حذف السطر ده؟');">
+            <button type="submit" class="btn btn-danger">حذف</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">مفيش عمليات صرف مسجلة في {{ month_name }} {{ year }} لسه.</div>
+  {% endif %}
+</div>
+{% endblock %}

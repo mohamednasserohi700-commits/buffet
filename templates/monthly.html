@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}تقرير {{ month_name }} {{ year }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">التقرير الشهري</div>
+    <div class="page-desc">إجمالي المصروفات على المشروبات والمهمات لكل شهر، مع تفصيل حسب الصنف واليوم</div>
+  </div>
+  <div style="display:flex; gap:10px; align-items:center;" class="no-print">
+    <div class="month-nav">
+      <a href="{{ url_for('monthly_report', year=prev_year, month=prev_month) }}">‹</a>
+      <span class="month-label">{{ month_name }} {{ year }}</span>
+      <a href="{{ url_for('monthly_report', year=next_year, month=next_month) }}">›</a>
+    </div>
+    <button class="btn btn-ghost" onclick="window.print()">🖨 طباعة</button>
+  </div>
+</div>
+
+<div class="ticket">
+  <div class="ticket-row">
+    <div>
+      <div class="ticket-label">إجمالي السعر — {{ month_name }} {{ year }}</div>
+      <div class="ticket-value">{{ grand_total|money }} ج.م</div>
+    </div>
+    <div class="ticket-sub">
+      <div>
+        <div class="ticket-label">إجمالي الكمية</div>
+        <div class="ticket-value">{{ grand_qty|money }}</div>
+      </div>
+      <div>
+        <div class="ticket-label">عدد الأصناف</div>
+        <div class="ticket-value">{{ summary|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-perf">سجل المخزون · تقرير شهري تلقائي</div>
+</div>
+
+<div class="card">
+  <div class="card-title">الإجمالي حسب الصنف</div>
+  {% if summary %}
+  <table>
+    <thead>
+      <tr>
+        <th>اسم الصنف</th>
+        <th class="num">إجمالي الكمية</th>
+        <th class="num">إجمالي السعر</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in summary %}
+      <tr>
+        <td>{{ row.name }}</td>
+        <td class="num">{{ row.qty|money }}</td>
+        <td class="num">{{ row.total|money }} ج.م</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">مفيش بيانات لشهر {{ month_name }} {{ year }}.</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title">تفصيل العمليات اليومية</div>
+  {% if detail_rows %}
+  <table>
+    <thead>
+      <tr>
+        <th>م</th>
+        <th>الصنف</th>
+        <th class="num">الكمية</th>
+        <th>التاريخ</th>
+        <th>اليوم</th>
+        <th class="num">السعر</th>
+        <th>ملاحظات</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in detail_rows %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ row.item.name }}</td>
+        <td class="num">{{ row.quantity|money }}</td>
+        <td>{{ row.entry_date.strftime('%d/%m/%Y') }}</td>
+        <td>{{ day_name_fn(row.entry_date) }}</td>
+        <td class="num">{{ row.total|money }} ج.م</td>
+        <td>{{ row.note or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">مفيش عمليات مسجلة في الشهر ده.</div>
+  {% endif %}
+</div>
+{% endblock %}
