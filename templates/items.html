@@ -17,6 +17,10 @@
       <input type="text" name="name" placeholder="مثال: شاي" required>
     </div>
     <div class="field">
+      <label>الوحدة</label>
+      <input type="text" name="unit" placeholder="مثال: كيلو، كرتونة، قطعة" required>
+    </div>
+    <div class="field">
       <label>سعر الوحدة (ج.م)</label>
       <input type="number" name="price" step="0.01" min="0" placeholder="0.00" required>
     </div>
@@ -33,6 +37,7 @@
     <thead>
       <tr>
         <th>اسم الصنف</th>
+        <th>الوحدة</th>
         <th class="num">سعر الوحدة</th>
         <th>عدد عمليات الصرف</th>
         <th></th>
@@ -44,6 +49,10 @@
         <td>
           <input form="edit-{{ item.id }}" type="text" name="name" value="{{ item.name }}"
                  style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:inherit; width:160px;">
+        </td>
+        <td>
+          <input form="edit-{{ item.id }}" type="text" name="unit" value="{{ item.unit }}"
+                 style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:inherit; width:110px;">
         </td>
         <td class="num">
           <input form="edit-{{ item.id }}" type="number" name="price" step="0.01" min="0" value="{{ item.price }}"

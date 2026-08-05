@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}استيراد وتصدير البيانات{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="page-title">استيراد وتصدير البيانات</div>
+    <div class="page-desc">اعمل نسخة احتياطية من كل البيانات (الأصناف وعمليات الصرف)، أو استوردها تاني على أي جهاز</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">تصدير البيانات</div>
+  <div class="hint">
+    الأصناف الحالية: <strong>{{ items_count }}</strong> — عمليات الصرف المسجلة: <strong>{{ entries_count }}</strong>
+  </div>
+  <div class="btn-row">
+    <a class="btn btn-primary" href="{{ url_for('export_json') }}">⬇ تصدير نسخة احتياطية كاملة (JSON)</a>
+    <a class="btn btn-ghost" href="{{ url_for('export_items_csv') }}">⬇ تصدير الأصناف (CSV / إكسل)</a>
+    <a class="btn btn-ghost" href="{{ url_for('export_entries_csv') }}">⬇ تصدير عمليات الصرف (CSV / إكسل)</a>
+  </div>
+  <div class="hint">
+    ملف الـ JSON هو النسخة الكاملة اللي ممكن ترجّعها تاني بالكامل (أصناف + عمليات صرف).
+    أما ملفات الـ CSV فبتتفتح في إكسل مباشرة للمراجعة أو الأرشفة، لكن مش بتترفع تاني للنظام.
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">استيراد البيانات</div>
+  <form method="post" action="{{ url_for('import_json') }}" enctype="multipart/form-data" onsubmit="return confirmImport(this);">
+    <div class="radio-group">
+      <label class="radio-option">
+        <input type="radio" name="mode" value="merge" checked>
+        <span><strong>دمج مع البيانات الحالية</strong> — بيضيف أي صنف أو عملية جديدة، وبيحدّث سعر الأصناف الموجودة بنفس الاسم (الأفضل في أغلب الحالات)</span>
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="mode" value="replace">
+        <span><strong>استبدال كل البيانات الحالية</strong> — بيمسح كل الأصناف وعمليات الصرف الموجودة دلوقتي، ويحط بدالها بيانات الملف بس (احترس، الخطوة دي مفيش رجوع فيها)</span>
+      </label>
+    </div>
+
+    <div class="file-field">
+      <label>اختار ملف النسخة الاحتياطية (JSON)</label>
+      <input type="file" name="file" accept="application/json,.json" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">استيراد الملف</button>
+  </form>
+  <div class="hint">
+    الاستيراد بيقبل بس ملف الـ JSON اللي اتصدّر من زر "تصدير نسخة احتياطية كاملة" فوق (من نفس البرنامج أو نسخة تانية منه).
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmImport(form) {
+  var mode = form.querySelector('input[name="mode"]:checked').value;
+  if (mode === "replace") {
+    return confirm("متأكد؟ هيتم حذف كل الأصناف وعمليات الصرف الحالية نهائيًا واستبدالها بمحتوى الملف.");
+  }
+  return true;
+}
+</script>
+{% endblock %}

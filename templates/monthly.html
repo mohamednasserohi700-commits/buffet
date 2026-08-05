@@ -44,6 +44,7 @@
     <thead>
       <tr>
         <th>اسم الصنف</th>
+        <th>الوحدة</th>
         <th class="num">إجمالي الكمية</th>
         <th class="num">إجمالي السعر</th>
       </tr>
@@ -52,6 +53,7 @@
       {% for row in summary %}
       <tr>
         <td>{{ row.name }}</td>
+        <td>{{ row.unit }}</td>
         <td class="num">{{ row.qty|money }}</td>
         <td class="num">{{ row.total|money }} ج.م</td>
       </tr>
@@ -71,6 +73,7 @@
       <tr>
         <th>م</th>
         <th>الصنف</th>
+        <th>الوحدة</th>
         <th class="num">الكمية</th>
         <th>التاريخ</th>
         <th>اليوم</th>
@@ -83,6 +86,7 @@
       <tr>
         <td>{{ loop.index }}</td>
         <td>{{ row.item.name }}</td>
+        <td>{{ row.item.unit }}</td>
         <td class="num">{{ row.quantity|money }}</td>
         <td>{{ row.entry_date.strftime('%d/%m/%Y') }}</td>
         <td>{{ day_name_fn(row.entry_date) }}</td>

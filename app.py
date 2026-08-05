@@ -1,9 +1,12 @@
 import os
+import io
+import csv
+import json
 from datetime import date, datetime
 from calendar import monthrange
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from sqlalchemy import func
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response, send_file
+from sqlalchemy import func, inspect, text
 
 from models import db, Item, Entry
 
@@ -78,6 +81,14 @@ def inject_helpers():
 
 with app.app_context():
     db.create_all()
+    # ترقية بسيطة: إضافة عمود "الوحدة" لو قاعدة بيانات قديمة من غير العمود ده
+    inspector = inspect(db.engine)
+    if "items" in inspector.get_table_names():
+        existing_cols = [c["name"] for c in inspector.get_columns("items")]
+        if "unit" not in existing_cols:
+            with db.engine.begin() as conn:
+                conn.execute(text("ALTER TABLE items ADD COLUMN unit VARCHAR(30) DEFAULT ''"))
+            print("[سجل المخزون] تم إضافة عمود الوحدة (unit) لجدول الأصناف")
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +107,7 @@ def index():
 def items():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
+        unit = request.form.get("unit", "").strip()
         price_raw = request.form.get("price", "").strip()
         try:
             price = float(price_raw)
@@ -104,12 +116,14 @@ def items():
 
         if not name:
             flash("اكتب اسم الصنف", "error")
+        elif not unit:
+            flash("اكتب وحدة القياس (مثال: كيلو، كرتونة، قطعة)", "error")
         elif price is None or price < 0:
             flash("اكتب سعر صحيح للصنف", "error")
         elif Item.query.filter_by(name=name).first():
             flash("الصنف ده موجود بالفعل", "error")
         else:
-            db.session.add(Item(name=name, price=price))
+            db.session.add(Item(name=name, unit=unit, price=price))
             db.session.commit()
             flash(f'تم إضافة "{name}"', "success")
         return redirect(url_for("items"))
@@ -122,17 +136,19 @@ def items():
 def update_item(item_id):
     item = Item.query.get_or_404(item_id)
     name = request.form.get("name", "").strip()
+    unit = request.form.get("unit", "").strip()
     price_raw = request.form.get("price", "").strip()
     try:
         price = float(price_raw)
     except ValueError:
         price = None
 
-    if not name or price is None or price < 0:
+    if not name or not unit or price is None or price < 0:
         flash("بيانات غير صحيحة", "error")
         return redirect(url_for("items"))
 
     item.name = name
+    item.unit = unit
     item.price = price
     db.session.commit()
     flash("تم تحديث الصنف", "success")
@@ -249,7 +265,7 @@ def delete_entry(entry_id):
 @app.route("/api/item-price/<int:item_id>")
 def item_price(item_id):
     item = Item.query.get_or_404(item_id)
-    return jsonify({"price": item.price})
+    return jsonify({"price": item.price, "unit": item.unit})
 
 
 # ---------------------------------------------------------------------------
@@ -267,12 +283,13 @@ def monthly_report(year, month):
     summary = (
         db.session.query(
             Item.name.label("name"),
+            Item.unit.label("unit"),
             func.sum(Entry.quantity).label("qty"),
             func.sum(Entry.quantity * Entry.unit_price).label("total"),
         )
         .join(Entry, Entry.item_id == Item.id)
         .filter(Entry.entry_date >= start, Entry.entry_date <= end)
-        .group_by(Item.name)
+        .group_by(Item.name, Item.unit)
         .order_by(func.sum(Entry.quantity * Entry.unit_price).desc())
         .all()
     )
@@ -306,6 +323,186 @@ def monthly_report(year, month):
         next_month=next_month,
         day_name_fn=arabic_day_name,
     )
+
+
+# ---------------------------------------------------------------------------
+# استيراد وتصدير جميع البيانات
+# ---------------------------------------------------------------------------
+@app.route("/data")
+def data_page():
+    return render_template(
+        "data.html",
+        items_count=Item.query.count(),
+        entries_count=Entry.query.count(),
+    )
+
+
+def _build_backup_dict():
+    items = Item.query.order_by(Item.name.asc()).all()
+    entries = (
+        Entry.query.join(Item, Entry.item_id == Item.id)
+        .order_by(Entry.entry_date.asc(), Entry.id.asc())
+        .all()
+    )
+    return {
+        "exported_at": datetime.utcnow().isoformat(),
+        "items": [
+            {"name": it.name, "unit": it.unit, "price": it.price} for it in items
+        ],
+        "entries": [
+            {
+                "item_name": e.item.name,
+                "quantity": e.quantity,
+                "unit_price": e.unit_price,
+                "entry_date": e.entry_date.isoformat(),
+                "note": e.note or "",
+            }
+            for e in entries
+        ],
+    }
+
+
+@app.route("/data/export.json")
+def export_json():
+    payload = json.dumps(_build_backup_dict(), ensure_ascii=False, indent=2)
+    filename = f"inventory-backup-{date.today().isoformat()}.json"
+    return Response(
+        payload,
+        mimetype="application/json",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@app.route("/data/export/items.csv")
+def export_items_csv():
+    buf = io.StringIO()
+    buf.write("\ufeff")  # BOM عشان الإكسل يقرأ العربي صح
+    writer = csv.writer(buf)
+    writer.writerow(["اسم الصنف", "الوحدة", "السعر"])
+    for it in Item.query.order_by(Item.name.asc()).all():
+        writer.writerow([it.name, it.unit, it.price])
+    filename = f"items-{date.today().isoformat()}.csv"
+    return Response(
+        buf.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@app.route("/data/export/entries.csv")
+def export_entries_csv():
+    buf = io.StringIO()
+    buf.write("\ufeff")
+    writer = csv.writer(buf)
+    writer.writerow(["التاريخ", "الصنف", "الوحدة", "الكمية", "سعر الوحدة", "الإجمالي", "ملاحظات"])
+    rows = (
+        Entry.query.join(Item, Entry.item_id == Item.id)
+        .order_by(Entry.entry_date.asc(), Entry.id.asc())
+        .all()
+    )
+    for e in rows:
+        writer.writerow(
+            [
+                e.entry_date.isoformat(),
+                e.item.name,
+                e.item.unit,
+                e.quantity,
+                e.unit_price,
+                e.total,
+                e.note or "",
+            ]
+        )
+    filename = f"entries-{date.today().isoformat()}.csv"
+    return Response(
+        buf.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@app.route("/data/import", methods=["POST"])
+def import_json():
+    mode = request.form.get("mode", "merge")  # merge | replace
+    uploaded = request.files.get("file")
+
+    if not uploaded or uploaded.filename == "":
+        flash("اختار ملف نسخة احتياطية (JSON) الأول", "error")
+        return redirect(url_for("data_page"))
+
+    try:
+        raw = uploaded.read().decode("utf-8-sig")
+        payload = json.loads(raw)
+        items_in = payload.get("items", [])
+        entries_in = payload.get("entries", [])
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        flash("الملف مش بصيغة صحيحة، لازم يكون ملف JSON متصدَّر من البرنامج", "error")
+        return redirect(url_for("data_page"))
+
+    if mode == "replace":
+        Entry.query.delete()
+        Item.query.delete()
+        db.session.commit()
+
+    # 1) الأصناف: upsert حسب الاسم
+    name_to_item = {it.name: it for it in Item.query.all()}
+    added_items = 0
+    updated_items = 0
+    for row in items_in:
+        name = str(row.get("name", "")).strip()
+        unit = str(row.get("unit", "")).strip()
+        try:
+            price = float(row.get("price", 0))
+        except (TypeError, ValueError):
+            price = 0
+        if not name:
+            continue
+        if name in name_to_item:
+            existing = name_to_item[name]
+            existing.unit = unit or existing.unit
+            existing.price = price
+            updated_items += 1
+        else:
+            new_item = Item(name=name, unit=unit, price=price)
+            db.session.add(new_item)
+            db.session.flush()
+            name_to_item[name] = new_item
+            added_items += 1
+    db.session.commit()
+
+    # 2) الحركات: تُربط بالصنف عن طريق الاسم
+    added_entries = 0
+    skipped_entries = 0
+    for row in entries_in:
+        item_name = str(row.get("item_name", "")).strip()
+        item = name_to_item.get(item_name)
+        try:
+            quantity = float(row.get("quantity"))
+            unit_price = float(row.get("unit_price"))
+            entry_date = datetime.strptime(str(row.get("entry_date")), "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            item = None
+
+        if not item:
+            skipped_entries += 1
+            continue
+
+        db.session.add(
+            Entry(
+                item_id=item.id,
+                quantity=quantity,
+                unit_price=unit_price,
+                entry_date=entry_date,
+                note=(row.get("note") or None),
+            )
+        )
+        added_entries += 1
+    db.session.commit()
+
+    msg = f"تم الاستيراد: {added_items} صنف جديد، {updated_items} صنف اتحدث، {added_entries} عملية صرف جديدة"
+    if skipped_entries:
+        msg += f"، وتم تجاهل {skipped_entries} عملية لبيانات ناقصة أو صنف مش موجود"
+    flash(msg, "success")
+    return redirect(url_for("data_page"))
 
 
 if __name__ == "__main__":

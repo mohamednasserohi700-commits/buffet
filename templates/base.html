@@ -27,6 +27,9 @@
         <a href="{{ url_for('items') }}" class="nav-link {{ 'is-active' if request.endpoint == 'items' else '' }}">
           <span class="nav-num">03</span> الأصناف والأسعار
         </a>
+        <a href="{{ url_for('data_page') }}" class="nav-link {{ 'is-active' if request.endpoint == 'data_page' else '' }}">
+          <span class="nav-num">04</span> استيراد وتصدير
+        </a>
       </nav>
 
       <div class="sidebar-foot">تحديث يدوي للكميات والتواريخ، بيحسب الإجمالي أوتوماتيك.</div>

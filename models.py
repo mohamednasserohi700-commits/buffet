@@ -8,6 +8,7 @@ class Item(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False, unique=True)
+    unit = db.Column(db.String(30), nullable=False, default="")
     price = db.Column(db.Float, nullable=False, default=0)
 
     entries = db.relationship("Entry", backref="item", lazy=True)

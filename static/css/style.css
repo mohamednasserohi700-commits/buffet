@@ -318,6 +318,14 @@ td.num, th.num { text-align: left; font-variant-numeric: tabular-nums; }
 
 .actions-cell { display: flex; gap: 8px; align-items: center; }
 
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.hint { font-size: 12.5px; color: var(--coffee-500); margin-top: 6px; line-height: 1.6; }
+.radio-group { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 16px; }
+.radio-option { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; color: var(--coffee-700); cursor: pointer; }
+.radio-option input { margin-top: 3px; }
+.radio-option strong { color: var(--coffee-900); }
+.file-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+
 .toolbar {
   display: flex;
   justify-content: space-between;

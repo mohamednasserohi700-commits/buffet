@@ -25,7 +25,7 @@
       <select name="item_id" required>
         <option value="" disabled selected>اختار الصنف</option>
         {% for item in items %}
-        <option value="{{ item.id }}">{{ item.name }} — {{ item.price|money }} ج.م</option>
+        <option value="{{ item.id }}">{{ item.name }} ({{ item.unit }}) — {{ item.price|money }} ج.م</option>
         {% endfor %}
       </select>
     </div>
@@ -59,6 +59,7 @@
       <tr>
         <th>م</th>
         <th>الصنف</th>
+        <th>الوحدة</th>
         <th class="num">الكمية</th>
         <th>التاريخ</th>
         <th>اليوم</th>
@@ -72,6 +73,7 @@
       <tr>
         <td>{{ loop.index }}</td>
         <td>{{ row.item.name }}</td>
+        <td>{{ row.item.unit }}</td>
         <td class="num">{{ row.quantity|money }}</td>
         <td>{{ row.entry_date.strftime('%d/%m/%Y') }}</td>
         <td>{{ day_name_fn(row.entry_date) }}</td>
