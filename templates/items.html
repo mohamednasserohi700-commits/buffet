@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}الأصناف والأسعار{% endblock %}
+{% block mobile_title %}الأصناف والأسعار{% endblock %}
 
 {% block content %}
 <div class="page-head">
@@ -46,20 +47,17 @@
     <tbody>
       {% for item in items %}
       <tr>
-        <td>
-          <input form="edit-{{ item.id }}" type="text" name="name" value="{{ item.name }}"
-                 style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:inherit; width:160px;">
+        <td data-label="اسم الصنف">
+          <input class="table-input table-input--name" form="edit-{{ item.id }}" type="text" name="name" value="{{ item.name }}">
         </td>
-        <td>
-          <input form="edit-{{ item.id }}" type="text" name="unit" value="{{ item.unit }}"
-                 style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:inherit; width:110px;">
+        <td data-label="الوحدة">
+          <input class="table-input table-input--unit" form="edit-{{ item.id }}" type="text" name="unit" value="{{ item.unit }}">
         </td>
-        <td class="num">
-          <input form="edit-{{ item.id }}" type="number" name="price" step="0.01" min="0" value="{{ item.price }}"
-                 style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:inherit; width:100px; text-align:left;">
+        <td class="num" data-label="سعر الوحدة">
+          <input class="table-input table-input--price" form="edit-{{ item.id }}" type="number" name="price" step="0.01" min="0" value="{{ item.price }}">
         </td>
-        <td><span class="badge">{{ item.entries|length }} عملية</span></td>
-        <td class="actions-cell">
+        <td data-label="عدد عمليات الصرف"><span class="badge">{{ item.entries|length }} عملية</span></td>
+        <td class="actions-cell" data-label="">
           <form id="edit-{{ item.id }}" method="post" action="{{ url_for('update_item', item_id=item.id) }}" class="inline-form"></form>
           <button form="edit-{{ item.id }}" type="submit" class="btn btn-ghost btn-sm">حفظ</button>
           <form method="post" action="{{ url_for('delete_item', item_id=item.id) }}" class="inline-form" onsubmit="return confirm('حذف الصنف {{ item.name }}؟');">

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}تسجيل الصرف — {{ month_name }} {{ year }}{% endblock %}
+{% block mobile_title %}تسجيل الصرف{% endblock %}
 
 {% block content %}
 <div class="page-head">
@@ -71,15 +72,15 @@
     <tbody>
       {% for row in rows %}
       <tr>
-        <td>{{ loop.index }}</td>
-        <td>{{ row.item.name }}</td>
-        <td>{{ row.item.unit }}</td>
-        <td class="num">{{ row.quantity|money }}</td>
-        <td>{{ row.entry_date.strftime('%d/%m/%Y') }}</td>
-        <td>{{ day_name_fn(row.entry_date) }}</td>
-        <td class="num">{{ row.total|money }} ج.م</td>
-        <td>{{ row.note or '—' }}</td>
-        <td class="no-print">
+        <td data-label="م">{{ loop.index }}</td>
+        <td data-label="الصنف" class="cell-strong">{{ row.item.name }}</td>
+        <td data-label="الوحدة">{{ row.item.unit }}</td>
+        <td class="num" data-label="الكمية">{{ row.quantity|money }}</td>
+        <td data-label="التاريخ">{{ row.entry_date.strftime('%d/%m/%Y') }}</td>
+        <td data-label="اليوم">{{ day_name_fn(row.entry_date) }}</td>
+        <td class="num" data-label="السعر">{{ row.total|money }} ج.م</td>
+        <td data-label="ملاحظات">{{ row.note or '—' }}</td>
+        <td class="no-print" data-label="">
           <form method="post" action="{{ url_for('delete_entry', entry_id=row.id) }}" class="inline-form" onsubmit="return confirm('حذف السطر ده؟');">
             <button type="submit" class="btn btn-danger">حذف</button>
           </form>
