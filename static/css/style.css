@@ -45,8 +45,6 @@ html, body {
   background: var(--cream);
   color: var(--coffee-900);
   font-family: "Cairo", "Tahoma", sans-serif;
-  overflow-x: hidden;
-  -webkit-tap-highlight-color: transparent;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -55,62 +53,7 @@ button { font-family: inherit; }
 .shell {
   display: flex;
   min-height: 100vh;
-  min-height: 100dvh;
 }
-
-/* ---------------- Mobile top bar (hidden on desktop) ---------------- */
-.mobile-topbar {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: var(--coffee-900);
-  color: #f2e9db;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 18px 12px;
-}
-.mobile-topbar-mark {
-  width: 30px;
-  height: 30px;
-  background: var(--amber);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  flex-shrink: 0;
-}
-.mobile-topbar-title { font-weight: 700; font-size: 15.5px; }
-
-/* ---------------- Mobile bottom tab bar (hidden on desktop) ---------------- */
-.mobile-tabbar {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  z-index: 30;
-  background: var(--coffee-900);
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.tab-link {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 9px 4px 8px;
-  color: #a68f6c;
-  font-size: 11px;
-  font-weight: 700;
-  min-height: 54px;
-}
-.tab-icon { font-size: 19px; line-height: 1; }
-.tab-link.is-active { color: var(--amber); }
-.tab-link:active { background: rgba(185, 121, 59, 0.12); }
 
 /* ---------------- Sidebar ---------------- */
 .sidebar {
@@ -212,8 +155,6 @@ button { font-family: inherit; }
 .month-nav a:hover { background: var(--cream); }
 .month-nav .month-label { font-weight: 700; min-width: 130px; text-align: center; color: var(--coffee-900); }
 
-.page-head-actions { display: flex; gap: 10px; align-items: center; }
-
 /* ---------------- Cards / Tables ---------------- */
 .card {
   background: var(--paper);
@@ -250,25 +191,6 @@ tbody td {
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover { background: rgba(185, 121, 59, 0.06); }
 td.num, th.num { text-align: left; font-variant-numeric: tabular-nums; }
-.cell-strong { font-weight: 700; }
-
-.table-input {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 8px 10px;
-  font-family: inherit;
-  font-size: 14px;
-  color: var(--coffee-900);
-  background: #fff;
-}
-.table-input:focus {
-  outline: none;
-  border-color: var(--amber);
-  box-shadow: 0 0 0 3px rgba(185, 121, 59, 0.18);
-}
-.table-input--name { width: 160px; }
-.table-input--unit { width: 110px; }
-.table-input--price { width: 100px; text-align: left; }
 
 .empty-state {
   text-align: center;
@@ -416,114 +338,31 @@ td.num, th.num { text-align: left; font-variant-numeric: tabular-nums; }
 /* ---------------- Print ---------------- */
 @media print {
   .sidebar, .toolbar .btn, .month-nav, .flash-stack, .no-print { display: none !important; }
-  .content { padding: 0; max-width: 100%; }
+  .content { padding: 14px 20px; max-width: 100%; }
   .shell { display: block; }
   body { background: #fff; }
-  .card, .ticket { box-shadow: none; border: 1px solid #ccc; }
-  .ticket { background: #fff !important; color: #000 !important; }
+  .card, .ticket { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+  .ticket { background: #fff !important; color: #000 !important; margin-bottom: 12px; padding: 14px 16px; }
   .ticket-label, .ticket-perf { color: #444 !important; }
   .ticket::before, .ticket::after { display: none; }
+  .card { padding: 12px; margin-bottom: 12px; }
+  .card-title { font-size: 13px; margin-bottom: 8px; }
+  table { font-size: 12px; }
+  thead th { padding: 6px 8px; font-size: 11px; }
+  tbody td { padding: 6px 8px; }
+  .page-head { margin-bottom: 8px; }
+  .page-title { font-size: 18px; }
+  .page-desc { font-size: 12px; }
+  .ticket-row { flex-direction: column; gap: 6px; }
+  .ticket-sub { gap: 14px; }
+  .ticket-value { font-size: 24px; }
+  .ticket-sub .ticket-value { font-size: 16px; }
 }
 
-/* =========================================================
-   الموبايل والتابلت (أقل من 901px): تصميم مختلف زي التطبيقات —
-   شريط علوي مختصر + شريط تنقل سفلي ثابت، بدل السايدبار الجانبي
-   ========================================================= */
 @media (max-width: 900px) {
   .shell { flex-direction: column; }
-  .sidebar { display: none; }
-  .mobile-topbar { display: flex; }
-  .mobile-tabbar { display: flex; }
-
-  .content {
-    padding: 18px 16px calc(84px + env(safe-area-inset-bottom, 0px));
-    max-width: 100%;
-  }
-
-  .page-head { margin-bottom: 18px; }
-  .page-title { font-size: 20px; }
-
-  /* الجداول العريضة تتفرج بتمرير أفقي داخل الكارت بدل ما تكسر الصفحة */
-  .card { padding: 16px; overflow-x: auto; }
-  table { min-width: 560px; }
-}
-
-/* =========================================================
-   الموبايل (640px فأقل): الجداول بتتحول لبطاقات رأسية —
-   كل صف بيبقى كارت مستقل وكل عمود بيبان باسمه
-   ========================================================= */
-@media (max-width: 640px) {
-  html { font-size: 15.5px; }
-
-  .content { padding: 14px 12px calc(84px + env(safe-area-inset-bottom, 0px)); }
-
-  .page-head { flex-direction: column; align-items: stretch; gap: 12px; }
-  .page-head-actions { flex-direction: column; align-items: stretch; }
-  .month-nav { justify-content: space-between; }
-  .month-nav .month-label { min-width: 0; flex: 1; }
-  .month-nav a { width: 40px; height: 40px; }
-  .page-head-actions .btn { width: 100%; }
-
-  .card { overflow-x: visible; padding: 14px; border-radius: 12px; }
-
-  /* الفورمات: عمود واحد، حقول ملء العرض، خط 16px يمنع الزوم التلقائي في آيفون */
-  .form-grid { grid-template-columns: 1fr; gap: 12px; }
-  .field input, .field select, .table-input { font-size: 16px; padding: 12px 14px; width: 100%; }
-  .table-input--name, .table-input--unit, .table-input--price { width: 100%; }
-  .btn { width: 100%; padding: 13px 18px; font-size: 15px; }
-  .btn-sm, .btn-danger { width: auto; padding: 9px 14px; }
-  .toolbar .btn { width: auto; }
-
-  table { min-width: 0; width: 100%; }
-  thead { display: none; }
-  tbody, tr, td { display: block; width: 100%; }
-  tbody tr {
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    margin-bottom: 12px;
-    padding: 6px 14px;
-    background: var(--paper);
-  }
-  tbody tr:last-child { margin-bottom: 0; }
-  tbody tr:hover { background: var(--paper); }
-  tbody td {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px dashed var(--line);
-    text-align: left;
-  }
-  tbody td:last-child { border-bottom: none; }
-  tbody td[data-label]::before {
-    content: attr(data-label);
-    font-size: 11.5px;
-    font-weight: 700;
-    color: var(--coffee-500);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    flex-shrink: 0;
-  }
-  tbody td[data-label=""]::before { display: none; }
-  tbody td[data-label=""] { justify-content: flex-end; }
-  td.num, th.num { text-align: left; }
-  .actions-cell { justify-content: flex-end; width: 100%; }
-
-  /* الإيصال / الملخص الشهري */
-  .ticket { padding: 20px; }
-  .ticket-row { gap: 14px; }
-  .ticket-value { font-size: 26px; }
-  .ticket-sub { gap: 20px; }
-  .ticket-sub .ticket-value { font-size: 17px; }
-
-  .btn-row { flex-direction: column; }
-  .btn-row .btn { width: 100%; }
-  .radio-option { font-size: 13.5px; }
-}
-
-/* أزرار وروابط قابلة للمس بحجم مريح على أي شاشة لمس */
-@media (pointer: coarse) {
-  .btn, .nav-link, .tab-link, .month-nav a { min-height: 40px; }
-  .btn { min-height: 44px; }
+  .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; align-items: center; padding: 16px 20px; gap: 16px; }
+  .nav { flex-direction: row; }
+  .sidebar-foot { display: none; }
+  .content { padding: 22px 18px 40px; }
 }
