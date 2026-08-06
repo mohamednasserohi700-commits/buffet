@@ -297,12 +297,6 @@ def monthly_report(year, month):
     grand_total = sum(row.total for row in summary) if summary else 0
     grand_qty = sum(row.qty for row in summary) if summary else 0
 
-    detail_rows = (
-        Entry.query.filter(Entry.entry_date >= start, Entry.entry_date <= end)
-        .order_by(Entry.entry_date.asc(), Entry.id.asc())
-        .all()
-    )
-
     prev_month = month - 1 or 12
     prev_year = year - 1 if month == 1 else year
     next_month = month + 1 if month < 12 else 1
@@ -311,7 +305,6 @@ def monthly_report(year, month):
     return render_template(
         "monthly.html",
         summary=summary,
-        detail_rows=detail_rows,
         grand_total=grand_total,
         grand_qty=grand_qty,
         year=year,
@@ -321,7 +314,6 @@ def monthly_report(year, month):
         prev_month=prev_month,
         next_year=next_year,
         next_month=next_month,
-        day_name_fn=arabic_day_name,
     )
 
 
