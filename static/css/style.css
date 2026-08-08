@@ -415,14 +415,36 @@ td.num, th.num { text-align: left; font-variant-numeric: tabular-nums; }
 
 /* ---------------- Print ---------------- */
 @media print {
-  .sidebar, .toolbar .btn, .month-nav, .flash-stack, .no-print { display: none !important; }
+  @page { size: A4 portrait; margin: 12mm; }
+
+  .sidebar, .mobile-topbar, .mobile-tabbar, .toolbar .btn, .month-nav, .flash-stack, .no-print { display: none !important; }
   .content { padding: 0; max-width: 100%; }
   .shell { display: block; }
-  body { background: #fff; }
-  .card, .ticket { box-shadow: none; border: 1px solid #ccc; }
-  .ticket { background: #fff !important; color: #000 !important; }
+  body { background: #fff; font-size: 12px; }
+
+  .page-head { margin-bottom: 14px; align-items: flex-start; }
+  .page-title { font-size: 18px; }
+  .page-desc { font-size: 11px; }
+
+  .card, .ticket {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .card { padding: 14px; margin-bottom: 14px; }
+  .card-title { font-size: 13px; margin-bottom: 10px; }
+
+  .ticket { background: #fff !important; color: #000 !important; padding: 16px 18px; margin-bottom: 14px; }
   .ticket-label, .ticket-perf { color: #444 !important; }
+  .ticket-value { font-size: 24px; }
+  .ticket-sub .ticket-value { font-size: 15px; }
+  .ticket-perf { margin-top: 10px; padding-top: 8px; }
   .ticket::before, .ticket::after { display: none; }
+
+  table { font-size: 11.5px; }
+  thead th { padding: 6px 8px; }
+  tbody td { padding: 7px 8px; }
 }
 
 /* =========================================================
