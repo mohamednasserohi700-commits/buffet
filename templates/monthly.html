@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% block title %}تقرير {{ month_name }} {{ year }}{% endblock %}
+{% block mobile_title %}التقرير الشهري{% endblock %}
 
 {% block content %}
 <div class="page-head">
   <div>
     <div class="page-title">التقرير الشهري</div>
-    <div class="page-desc">إجمالي المصروفات على المشروبات والمهمات لكل شهر، مع تفصيل حسب الصنف</div>
+    <div class="page-desc">إجمالي المصروفات على المشروبات والمهمات لكل شهر، مع تفصيل حسب الصنف واليوم</div>
   </div>
-  <div style="display:flex; gap:10px; align-items:center;" class="no-print">
+  <div class="page-head-actions no-print">
     <div class="month-nav">
       <a href="{{ url_for('monthly_report', year=prev_year, month=prev_month) }}">‹</a>
       <span class="month-label">{{ month_name }} {{ year }}</span>
@@ -52,16 +53,52 @@
     <tbody>
       {% for row in summary %}
       <tr>
-        <td>{{ row.name }}</td>
-        <td>{{ row.unit }}</td>
-        <td class="num">{{ row.qty|money }}</td>
-        <td class="num">{{ row.total|money }} ج.م</td>
+        <td data-label="اسم الصنف" class="cell-strong">{{ row.name }}</td>
+        <td data-label="الوحدة">{{ row.unit }}</td>
+        <td class="num" data-label="إجمالي الكمية">{{ row.qty|money }}</td>
+        <td class="num" data-label="إجمالي السعر">{{ row.total|money }} ج.م</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   {% else %}
   <div class="empty-state">مفيش بيانات لشهر {{ month_name }} {{ year }}.</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title">تفصيل العمليات اليومية</div>
+  {% if detail_rows %}
+  <table>
+    <thead>
+      <tr>
+        <th>م</th>
+        <th>الصنف</th>
+        <th>الوحدة</th>
+        <th class="num">الكمية</th>
+        <th>التاريخ</th>
+        <th>اليوم</th>
+        <th class="num">السعر</th>
+        <th>ملاحظات</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in detail_rows %}
+      <tr>
+        <td data-label="م">{{ loop.index }}</td>
+        <td data-label="الصنف" class="cell-strong">{{ row.item.name }}</td>
+        <td data-label="الوحدة">{{ row.item.unit }}</td>
+        <td class="num" data-label="الكمية">{{ row.quantity|money }}</td>
+        <td data-label="التاريخ">{{ row.entry_date.strftime('%d/%m/%Y') }}</td>
+        <td data-label="اليوم">{{ day_name_fn(row.entry_date) }}</td>
+        <td class="num" data-label="السعر">{{ row.total|money }} ج.م</td>
+        <td data-label="ملاحظات">{{ row.note or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">مفيش عمليات مسجلة في الشهر ده.</div>
   {% endif %}
 </div>
 {% endblock %}
